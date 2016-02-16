@@ -9,4 +9,5 @@ public class FaceHelper {
         System.loadLibrary("Face");
     }
     public static native int[] gray(int[] buf, int w, int h);
+    public static native int Find(String imageName,String FileName,String Csv);
 }

@@ -25,7 +25,7 @@ model{
         moduleName = "Face"
         cppFlags.add("-std=c++11") // Add provisions to allow C++11 functionality
         cppFlags.add("-fexceptions")
-        cppFlags.add("-I${file("D:/OpenCV-android-sdk/sdk/native/jni/include")}".toString())
+        cppFlags.add("-I${file("D:\\OpenCV2411\\sdk\\native\\jni\\include")}".toString())
         ldLibs.addAll(["android", "EGL", "GLESv2", "dl", "log", "z"])
         stl = "gnustl_shared"
     }
@@ -38,11 +38,16 @@ model{
                 curDir = file(curDir.absolutePath)
                 String libsDir = curDir.absolutePath + "\\src\\main\\jniLibs\\armeabi\\"
 
+                ldLibs.add(libsDir + "libnative_camera_r4.4.0.so")
+                ldLibs.add(libsDir + "libopencv_contrib.a")
                 ldLibs.add(libsDir + "libopencv_core.a")
                 ldLibs.add(libsDir + "libopencv_highgui.a")
                 ldLibs.add(libsDir + "libopencv_imgproc.a")
-                ldLibs.add(libsDir + "libopencv_java3.so")
+                ldLibs.add(libsDir + "libopencv_info.so")
+                ldLibs.add(libsDir + "libopencv_java.so")
+                ldLibs.add(libsDir + "libopencv_legacy.a")
                 ldLibs.add(libsDir + "libopencv_ml.a")
+                ldLibs.add(libsDir + "libopencv_ts.a")
 
             }
         }
@@ -53,10 +58,14 @@ model{
                 File curDir = file('./')
                 curDir = file(curDir.absolutePath)
                 String libsDir = curDir.absolutePath + "\\src\\main\\jniLibs\\armeabi-v7a\\"
+                ldLibs.add(libsDir + "libnative_camera_r4.4.0.so")
+                ldLibs.add(libsDir + "libopencv_contrib.a")
                 ldLibs.add(libsDir + "libopencv_core.a")
                 ldLibs.add(libsDir + "libopencv_highgui.a")
                 ldLibs.add(libsDir + "libopencv_imgproc.a")
-                ldLibs.add(libsDir + "libopencv_java3.so")
+                ldLibs.add(libsDir + "libopencv_info.so")
+                ldLibs.add(libsDir + "libopencv_java.so")
+                ldLibs.add(libsDir + "libopencv_legacy.a")
                 ldLibs.add(libsDir + "libopencv_ml.a")
                 ldLibs.add(libsDir + "libopencv_ts.a")
 
@@ -76,5 +85,5 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.android.support:design:23.1.1'
-    compile project(':openCVLibrary310')
+    compile project(':openCVLibrary2411')
 }
