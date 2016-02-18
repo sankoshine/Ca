@@ -15,6 +15,8 @@
 #define LOG_TAG "Andy/FaceCPP"
 #define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__))
 
+
+
 using namespace cv;
 using namespace std;
 
@@ -26,37 +28,93 @@ Java_andy_ca_FaceHelper_Find(JNIEnv *env, jclass type, jstring imageName_, jstri
     const char *imageName = env->GetStringUTFChars(imageName_, 0);
     const char *FileName = env->GetStringUTFChars(FileName_, 0);
     const char *Csv = env->GetStringUTFChars(Csv_, 0);
+    try{
 
-    string stdFileName(FileName);
-    string stdImageName(imageName);
-    string stdCsv(Csv);
+        string stdXmlName(FileName);
+        string stdImageName(imageName);
+        string stdCsvName(Csv);
 
-    vector<Mat> images;
-    vector<int> labels;
-    std::ifstream file(stdCsv.c_str(), ifstream::in);
+        vector<Mat> images;
+        vector<int> labels;
+        std::ifstream file(stdCsvName.c_str(), ifstream::in);
+        LOGD("csv = %s",stdCsvName.c_str());
 
-    LOGD("Image = %s ",stdImageName.c_str());
-
-    string line, path, classlabel;
-    while (getline(file, line)) {
-        stringstream liness(line);
-        getline(liness, path, ';');
-        getline(liness, classlabel);
-        if(!path.empty() && !classlabel.empty()) {
-            images.push_back(imread(path, 0));
-            labels.push_back(atoi(classlabel.c_str()));
+        string line, path, classlabel;
+        while (getline(file, line)) {
+            stringstream liness(line);
+            getline(liness, path, ';');
+            getline(liness, classlabel);
+            if(!path.empty() && !classlabel.empty()) {
+                LOGD("push_back");
+                LOGD("path = %s", path.c_str());
+                LOGD("class = %d",atoi(classlabel.c_str()) );
+                images.push_back(imread(path, 0));
+                labels.push_back(atoi(classlabel.c_str()));
+            }
         }
+        LOGD("start train");
+
+        int im_width = images[0].cols;
+        int im_height = images[0].rows;
+        // Create a FaceRecognizer and train it on the given images:
+        Ptr<FaceRecognizer> model = createEigenFaceRecognizer();
+        model->train(images, labels);
+        LOGD("train finish");
+
+        model->save(stdXmlName);
+
+
+
+
+    } catch(cv::Exception e)
+    {
+        LOGD("nativeCreateObject catched cv::Exception: %s", e.what());
+        jclass je = env->FindClass("org/opencv/core/CvException");
+        if(!je)
+            je = env->FindClass("java/lang/Exception");
+        env->ThrowNew(je, e.what());
+    }
+    catch (...)
+    {
+        LOGD("nativeCreateObject catched unknown exception");
+        jclass je = env->FindClass("java/lang/Exception");
+        env->ThrowNew(je, "Unknown exception in JNI code {highgui::VideoCapture_n_1VideoCapture__()}");
     }
 
-    int im_width = images[0].cols;
-    int im_height = images[0].rows;
-    // Create a FaceRecognizer and train it on the given images:
-    Ptr<FaceRecognizer> model = createEigenFaceRecognizer();
-    model->train(images, labels);
+
+
+
+
+
+
+
 
     env->ReleaseStringUTFChars(imageName_, imageName);
     env->ReleaseStringUTFChars(FileName_, FileName);
     env->ReleaseStringUTFChars(Csv_, Csv);
+
+    return -9;
+}
+
+JNIEXPORT jint JNICALL
+Java_andy_ca_FaceHelper_Recog(JNIEnv *env, jclass type, jstring imageName_, jstring Filename_) {
+    const char *imageName = env->GetStringUTFChars(imageName_, 0);
+    const char *Filename = env->GetStringUTFChars(Filename_, 0);
+    string stdXmlName(Filename);
+    string stdImageName(imageName);
+    LOGD("strat predict");
+    Mat img = imread(stdImageName.c_str(), CV_LOAD_IMAGE_GRAYSCALE);
+    double predicted_confidence = 0.0;
+    int prediction;
+    Ptr<FaceRecognizer> model = createEigenFaceRecognizer();
+    model->load(stdXmlName);
+    model->predict(img,prediction,predicted_confidence);
+    LOGD("Prediction = %d Predicted Confidence = %Lf",prediction,predicted_confidence);
+    if(prediction>=0)
+        return prediction;
+
+    env->ReleaseStringUTFChars(imageName_, imageName);
+    env->ReleaseStringUTFChars(Filename_, Filename);
 }
 
 

@@ -38,7 +38,7 @@ model{
                 curDir = file(curDir.absolutePath)
                 String libsDir = curDir.absolutePath + "\\src\\main\\jniLibs\\armeabi\\"
 
-                ldLibs.add(libsDir + "libnative_camera_r4.4.0.so")
+          //      ldLibs.add(libsDir + "libnative_camera_r4.4.0.so")
                 ldLibs.add(libsDir + "libopencv_contrib.a")
                 ldLibs.add(libsDir + "libopencv_core.a")
                 ldLibs.add(libsDir + "libopencv_highgui.a")
@@ -58,7 +58,7 @@ model{
                 File curDir = file('./')
                 curDir = file(curDir.absolutePath)
                 String libsDir = curDir.absolutePath + "\\src\\main\\jniLibs\\armeabi-v7a\\"
-                ldLibs.add(libsDir + "libnative_camera_r4.4.0.so")
+          //      ldLibs.add(libsDir + "libnative_camera_r4.4.0.so")
                 ldLibs.add(libsDir + "libopencv_contrib.a")
                 ldLibs.add(libsDir + "libopencv_core.a")
                 ldLibs.add(libsDir + "libopencv_highgui.a")
