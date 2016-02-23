@@ -16,11 +16,72 @@
 #define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__))
 
 
-
 using namespace cv;
 using namespace std;
 
 extern "C" {
+
+JNIEXPORT jint JNICALL
+Java_andy_ca_FaceHelper_train(JNIEnv *env, jclass type, jstring parentDir_, jint countPhoto) {
+    const char *parentDir = env->GetStringUTFChars(parentDir_, 0);
+    string stdDir(parentDir);
+
+    vector<Mat> images;
+    vector<int> labels;
+    string path, label;
+    LOGD("start train");
+    int i = 0;
+    for(i = 1;i<=countPhoto;i++){
+        stringstream pathss;
+        pathss << stdDir << i << ".jpg";
+        path = pathss.str();
+        LOGD(path.c_str());
+        label = "0";
+        images.push_back(imread(path, 0));
+        labels.push_back(atoi(label.c_str()));
+    }
+
+    try{
+        Ptr<FaceRecognizer> model = createLBPHFaceRecognizer();
+        model->train(images, labels);
+        LOGD("train finish");
+        model->save(stdDir+"f.csv");
+    }catch(cv::Exception e){
+        LOGD("nativeCreateObject catched cv::Exception: %s", e.what());
+        jclass je = env->FindClass("org/opencv/core/CvException");
+        if(!je)
+            je = env->FindClass("java/lang/Exception");
+        env->ThrowNew(je, e.what());
+    }
+    catch (...){
+        LOGD("nativeCreateObject catched unknown exception");
+        jclass je = env->FindClass("java/lang/Exception");
+        env->ThrowNew(je, "Unknown exception in JNI code {highgui::VideoCapture_n_1VideoCapture__()}");
+    }
+
+    env->ReleaseStringUTFChars(parentDir_, parentDir);
+}
+
+JNIEXPORT jint JNICALL
+Java_andy_ca_FaceHelper_predict(JNIEnv *env, jclass type, jstring parentDir_) {
+    const char *parentDir = env->GetStringUTFChars(parentDir_, 0);
+
+    string stdDir(parentDir);
+    LOGD("strat predict");
+    string imgPath = stdDir + "p.jpg";
+    string xmlPath = stdDir + "f.csv";
+    Mat img = imread(imgPath.c_str(), CV_LOAD_IMAGE_GRAYSCALE);
+    double predicted_confidence = 0.0;
+    int prediction;
+    Ptr<FaceRecognizer> model = createLBPHFaceRecognizer();
+    model->load(xmlPath);
+    model->predict(img,prediction,predicted_confidence);
+    LOGD("Prediction = %d Predicted Confidence = %Lf",prediction,predicted_confidence);
+    if(prediction>=0)
+        return prediction;
+
+    env->ReleaseStringUTFChars(parentDir_, parentDir);
+}
 
 JNIEXPORT jint JNICALL
 Java_andy_ca_FaceHelper_Find(JNIEnv *env, jclass type, jstring imageName_, jstring FileName_,
@@ -34,30 +95,35 @@ Java_andy_ca_FaceHelper_Find(JNIEnv *env, jclass type, jstring imageName_, jstri
         string stdImageName(imageName);
         string stdCsvName(Csv);
 
-        vector<Mat> images;
-        vector<int> labels;
-        std::ifstream file(stdCsvName.c_str(), ifstream::in);
-        LOGD("csv = %s",stdCsvName.c_str());
-
+        vector<Mat> images, images2;
+        vector<int> labels, labels2;
+//        std::ifstream file(stdCsvName.c_str(), ifstream::in);
+//        LOGD("csv = %s",stdCsvName.c_str());
+//
         string line, path, classlabel;
-        while (getline(file, line)) {
-            stringstream liness(line);
-            getline(liness, path, ';');
-            getline(liness, classlabel);
-            if(!path.empty() && !classlabel.empty()) {
-                LOGD("push_back");
-                LOGD("path = %s", path.c_str());
-                LOGD("class = %d",atoi(classlabel.c_str()) );
-                images.push_back(imread(path, 0));
-                labels.push_back(atoi(classlabel.c_str()));
-            }
-        }
+//        while (getline(file, line)) {
+//            stringstream liness(line);
+//            getline(liness, path, ';');
+//            getline(liness, classlabel);
+//            if(!path.empty() && !classlabel.empty()) {
+//                LOGD("push_back");
+//                LOGD("path = %s", path.c_str());
+//                LOGD("class = %d",atoi(classlabel.c_str()) );
+//                images.push_back(imread(path, 0));
+//                labels.push_back(atoi(classlabel.c_str()));
+//            }
+//        }
         LOGD("start train");
-
-        int im_width = images[0].cols;
-        int im_height = images[0].rows;
-        // Create a FaceRecognizer and train it on the given images:
-        Ptr<FaceRecognizer> model = createEigenFaceRecognizer();
+        Ptr<FaceRecognizer> model = createLBPHFaceRecognizer();
+        path = "/storage/emulated/0/0010/1.jpg";
+        classlabel = "0";
+        images.push_back(imread(path, 0));
+        labels.push_back(atoi(classlabel.c_str()));
+        model->train(images, labels);
+        path = "/storage/emulated/0/0010/4.jpg";
+        classlabel = "1";
+        images2.push_back(imread(path, 0));
+        labels2.push_back(atoi(classlabel.c_str()));
         model->train(images, labels);
         LOGD("train finish");
 
@@ -81,14 +147,6 @@ Java_andy_ca_FaceHelper_Find(JNIEnv *env, jclass type, jstring imageName_, jstri
         env->ThrowNew(je, "Unknown exception in JNI code {highgui::VideoCapture_n_1VideoCapture__()}");
     }
 
-
-
-
-
-
-
-
-
     env->ReleaseStringUTFChars(imageName_, imageName);
     env->ReleaseStringUTFChars(FileName_, FileName);
     env->ReleaseStringUTFChars(Csv_, Csv);
@@ -106,7 +164,7 @@ Java_andy_ca_FaceHelper_Recog(JNIEnv *env, jclass type, jstring imageName_, jstr
     Mat img = imread(stdImageName.c_str(), CV_LOAD_IMAGE_GRAYSCALE);
     double predicted_confidence = 0.0;
     int prediction;
-    Ptr<FaceRecognizer> model = createEigenFaceRecognizer();
+    Ptr<FaceRecognizer> model = createLBPHFaceRecognizer();
     model->load(stdXmlName);
     model->predict(img,prediction,predicted_confidence);
     LOGD("Prediction = %d Predicted Confidence = %Lf",prediction,predicted_confidence);

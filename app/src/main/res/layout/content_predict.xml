@@ -9,28 +9,20 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="andy.ca.MainActivity"
-    tools:showIn="@layout/activity_main">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        android:id="@+id/txt"/>
+    tools:context="andy.ca.Predict"
+    tools:showIn="@layout/activity_predict">
 
     <Button
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="录入"
-        android:id="@+id/toTrain"
-        android:layout_below="@+id/txt"
-        android:layout_alignParentStart="true" />
+        android:text="拍照"
+        android:id="@+id/predictPhoto"
+        android:layout_alignParentTop="true"/>
 
     <Button
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="签到"
-        android:id="@+id/toPredict"
-        android:layout_below="@+id/toTrain"
-        android:layout_alignParentStart="true" />
+        android:text="识别"
+        android:id="@+id/predict"
+        android:layout_below="@+id/predictPhoto" />
 </RelativeLayout>

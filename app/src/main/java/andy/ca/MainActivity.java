@@ -1,5 +1,6 @@
 package andy.ca;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
@@ -10,10 +11,14 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
+
+    TextView txt = null;
+    Button train, predict;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,25 +26,31 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        txt = (TextView)findViewById(R.id.txt);
+        train = (Button) findViewById(R.id.toTrain);
+        predict = (Button) findViewById(R.id.toPredict);
 
-        String filecsv = "/storage/emulated/0/0010/f.csv";
-        String fileimg = "/storage/emulated/0/0010/3.jpg";
-        String filexml = "/storage/emulated/0/0010/p.xml";
+        train.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent it = new Intent(MainActivity.this, Train.class);
+                startActivity(it);
+            }
+        });
 
-        FaceHelper fc = new FaceHelper();
-     //   int re = fc.Find(fileimg, filexml, filecsv);
-        int re = fc.Recog(fileimg,filexml);
-        TextView txt = (TextView)findViewById(R.id.txt);
-        txt.setText(Integer.toString(re));
-
-        ImageView img = (ImageView) findViewById(R.id.img);
+        predict.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent it = new Intent(MainActivity.this, Predict.class);
+                startActivity(it);
+            }
+        });
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "bye bye", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                txt.setText("hello sanko");
             }
         });
     }
