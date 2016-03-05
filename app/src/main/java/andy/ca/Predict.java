@@ -32,7 +32,7 @@ public class Predict extends AppCompatActivity {
         takePhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                takePhoto("p");
+                takePhoto("9");
             }
         });
 

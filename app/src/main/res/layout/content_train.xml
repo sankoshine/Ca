@@ -68,5 +68,37 @@
             android:indeterminate="true" />
     </RelativeLayout>
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1"
+        android:id="@+id/textView1"
+        android:layout_below="@+id/image1"
+        android:layout_toEndOf="@+id/loadingPanel" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="2"
+        android:id="@+id/textView2"
+        android:layout_below="@+id/image2"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="3"
+        android:id="@+id/textView3"
+        android:layout_above="@+id/image3"
+        android:layout_toEndOf="@+id/loadingPanel" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="4"
+        android:id="@+id/textView4"
+        android:layout_above="@+id/image4"
+        android:layout_alignParentEnd="true" />
+
 
 </RelativeLayout>

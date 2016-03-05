@@ -8,9 +8,8 @@ public class FaceHelper {
     static {
         System.loadLibrary("Face");
     }
-    public static native int[] gray(int[] buf, int w, int h);
-    public static native int Find(String imageName,String FileName,String Csv);
-    public static native int Recog(String imageName,String Filename);
+
     public static native int train(String parentDir, int countPhoto);
     public static native int predict(String parentDir);
+    public static native int detect(String parentDir, int photoId);
 }

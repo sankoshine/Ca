@@ -32,9 +32,11 @@ public class Train extends AppCompatActivity {
     private Button takePhoto = null;
     private Button train = null;
     private ImageView img1,img2,img3,img4;
+    private TextView text1,text2,text3,text4;
     private GridView gridView;
     FaceHelper fc = null;
     RelativeLayout loadingPanel;
+    private static int no_of_faces = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,9 +49,13 @@ public class Train extends AppCompatActivity {
         loadingPanel = (RelativeLayout) findViewById(R.id.loadingPanel);
 
         img1 = (ImageView) findViewById(R.id.image1);
+        text1 = (TextView) findViewById(R.id.textView1);
         img2 = (ImageView) findViewById(R.id.image2);
+        text2 = (TextView) findViewById(R.id.textView2);
         img3 = (ImageView) findViewById(R.id.image3);
+        text3 = (TextView) findViewById(R.id.textView3);
         img4 = (ImageView) findViewById(R.id.image4);
+        text4 = (TextView) findViewById(R.id.textView4);
 
         train = (Button)findViewById(R.id.train);
         train.setOnClickListener(new View.OnClickListener() {
@@ -103,10 +109,35 @@ public class Train extends AppCompatActivity {
         startActivityForResult(intent, photoId);
     }
 
-    private void train(){
-        fc.train(PARENT_DIR, 4);
+    private int train(){
+        return fc.train(PARENT_DIR, 4);
     }
 
+    private int detect(final int photoId){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "run: start detect");
+                no_of_faces = fc.detect(PARENT_DIR, photoId);
+                Log.d(TAG, "run: no of faces - "+no_of_faces);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        String face_detect_result = "请重新拍摄！";
+                        if(no_of_faces==1)face_detect_result = "图像合格";
+                        Log.d(TAG, "run: face detect result - "+face_detect_result);
+                        switch (photoId){
+                            case 1:text1.setText(face_detect_result);break;
+                            case 2:text2.setText(face_detect_result);break;
+                            case 3:text3.setText(face_detect_result);break;
+                            case 4:text4.setText(face_detect_result);break;
+                        }
+                    }
+                });
+            }
+        }).start();
+        return 0;
+    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(1<=requestCode && requestCode<=4) {
@@ -117,17 +148,22 @@ public class Train extends AppCompatActivity {
                 switch (requestCode) {
                     case 1:
                         img1.setImageBitmap(bmp);
+                        text1.setText("Checking");
                         break;
                     case 2:
                         img2.setImageBitmap(bmp);
+                        text2.setText("Checking");
                         break;
                     case 3:
                         img3.setImageBitmap(bmp);
+                        text3.setText("Checking");
                         break;
                     case 4:
                         img4.setImageBitmap(bmp);
+                        text4.setText("Checking");
                         break;
                 }
+                detect(requestCode);
             } else if (resultCode == RESULT_CANCELED) {
                 Log.d(TAG, "onActivityResult: CANCELED");
             } else {
