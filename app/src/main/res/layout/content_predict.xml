@@ -25,4 +25,18 @@
         android:text="识别"
         android:id="@+id/predict"
         android:layout_below="@+id/predictPhoto" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/imageView"
+        android:layout_below="@+id/textView"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView"
+        android:layout_below="@+id/predict"
+        android:layout_centerHorizontal="true" />
 </RelativeLayout>

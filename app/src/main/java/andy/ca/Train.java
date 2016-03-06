@@ -26,7 +26,7 @@ import java.io.File;
 
 public class Train extends AppCompatActivity {
 
-    private static final String PARENT_DIR = "/storage/emulated/0/0000/";
+    private static final String PARENT_DIR = "/storage/emulated/0/1000/";
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private static final String TAG = "Andy/Train";
     private Button takePhoto = null;
@@ -69,6 +69,10 @@ public class Train extends AppCompatActivity {
                             @Override
                             public void run() {
                                 loadingPanel.setVisibility(View.VISIBLE);
+                                text1.setVisibility(View.GONE);
+                                text2.setVisibility(View.GONE);
+                                text3.setVisibility(View.GONE);
+                                text4.setVisibility(View.GONE);
                             }
                         });
                         train();
@@ -88,8 +92,7 @@ public class Train extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                fc.detectFacesCount(PARENT_DIR, 1);
             }
         });
 
@@ -110,7 +113,7 @@ public class Train extends AppCompatActivity {
     }
 
     private int train(){
-        return fc.train(PARENT_DIR, 4);
+        return fc.trainFaces(PARENT_DIR, 4);
     }
 
     private int detect(final int photoId){
@@ -118,7 +121,7 @@ public class Train extends AppCompatActivity {
             @Override
             public void run() {
                 Log.d(TAG, "run: start detect");
-                no_of_faces = fc.detect(PARENT_DIR, photoId);
+                no_of_faces = fc.detectFacesCount(PARENT_DIR, photoId);
                 Log.d(TAG, "run: no of faces - "+no_of_faces);
                 runOnUiThread(new Runnable() {
                     @Override
@@ -126,11 +129,22 @@ public class Train extends AppCompatActivity {
                         String face_detect_result = "请重新拍摄！";
                         if(no_of_faces==1)face_detect_result = "图像合格";
                         Log.d(TAG, "run: face detect result - "+face_detect_result);
+                        Bitmap bmp = BitmapFactory.decodeFile(PARENT_DIR + photoId + "_face.jpg");
                         switch (photoId){
-                            case 1:text1.setText(face_detect_result);break;
-                            case 2:text2.setText(face_detect_result);break;
-                            case 3:text3.setText(face_detect_result);break;
-                            case 4:text4.setText(face_detect_result);break;
+                            case 1:
+                                text1.setText(face_detect_result);
+                                img1.setImageBitmap(bmp);
+                                break;
+                            case 2:
+                                text2.setText(face_detect_result);
+                                img2.setImageBitmap(bmp);
+                                break;
+                            case 3:text3.setText(face_detect_result);
+                                img3.setImageBitmap(bmp);
+                                break;
+                            case 4:text4.setText(face_detect_result);
+                                img4.setImageBitmap(bmp);
+                                break;
                         }
                     }
                 });

@@ -9,7 +9,18 @@ public class FaceHelper {
         System.loadLibrary("Face");
     }
 
-    public static native int train(String parentDir, int countPhoto);
+    public int predictForConfidence(String parentDir){
+        return predict(parentDir);
+    }
+
+    public int detectFacesCount(String parentDir, int photoId){
+        return detect(parentDir, photoId);
+    }
+    public int trainFaces(String parentDir, int countPhoto){
+        return train(parentDir, countPhoto);
+    }
+
+    private static native int train(String parentDir, int countPhoto);
     public static native int predict(String parentDir);
-    public static native int detect(String parentDir, int photoId);
+    private static native int detect(String parentDir, int photoId);
 }

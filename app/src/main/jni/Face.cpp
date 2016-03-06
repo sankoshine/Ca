@@ -18,13 +18,12 @@
 using namespace cv;
 using namespace std;
 
-vector<Rect> detectAndDraw( Mat& img,CascadeClassifier& cascade,
-                            double scale)
+vector<Rect> detectFaces( Mat& img,CascadeClassifier& cascade)
 {
-    LOGD("detect and draw");
-    int i = 0;
+    LOGD("detect faces");
     vector<Rect> faces;
-    Mat gray, smallImg( cvRound (img.rows/scale), cvRound(img.cols/scale), CV_8UC1 );
+    Mat gray, smallImg( cvRound (img.rows), cvRound(img.cols), CV_8UC1 );
+    imwrite("/storage/emulated/0/1000/check.jpg",img);
 
     cvtColor( img, gray, CV_BGR2GRAY );
     resize( gray, smallImg, smallImg.size(), 0, 0, INTER_LINEAR );
@@ -37,32 +36,13 @@ vector<Rect> detectAndDraw( Mat& img,CascadeClassifier& cascade,
     return faces;
 }
 
-void resizeandtogray(string stdDir,int photoId)
+Mat normalizeImage(string path)
 {
-    stringstream pathss;
-    pathss << stdDir << photoId;
-    string path = pathss.str();
-    Mat cur_img = imread(path+".jpg",CV_LOAD_IMAGE_GRAYSCALE);
+    Mat cur_img = imread(path,CV_LOAD_IMAGE_GRAYSCALE);
     Mat des_img;
     normalize(cur_img,des_img,0, 255, NORM_MINMAX, CV_8UC1);
-    imwrite(path+"0.jpg",des_img);
-}
-
-Mat DetectandExtract(Mat& img, CascadeClassifier& cascade,
-                                      CascadeClassifier& nestedCascade,
-                                      double scale, bool tryflip)
-{
-    LOGD("DetectandExtract in");
-    vector<Rect> Rvec = detectAndDraw(img,cascade,scale);
-    Rect roi_rect = Rvec[0];
-    Mat roi = img(roi_rect);
-    LOGD("DetectandExtract: out");
-    return roi;
-}
-
-void PreHelper()
-{
-    int i;
+    imwrite(path+"_normal.jpg",des_img);
+    return des_img;
 }
 
 extern "C" {
@@ -71,132 +51,91 @@ JNIEXPORT jint JNICALL
 Java_andy_ca_FaceHelper_detect(JNIEnv *env, jclass type, jstring parentDir_, jint photoId) {
     const char *parentDir = env->GetStringUTFChars(parentDir_, 0);
     string stdDir(parentDir);
-    vector<Mat> images;
-    vector<int> labels;
-    string path, label;
+    int stdId(photoId);
+    LOGD("start detect");
 
     CascadeClassifier haar_cascade;
     haar_cascade.load(stdDir + "haarcascade_frontalface_alt.xml");
-
-    int i;
-
-    LOGD("start train");
-    for (i = 1; i <= 4; i++) {
-        stringstream pathss, paths;
-        pathss << stdDir << 0 << i;
-        paths << stdDir << i << ".jpg";
-        path = paths.str();
-        Mat original = imread(path, 1);
-        Mat img = DetectandExtract(original, haar_cascade, haar_cascade, 1, false);
-        path = pathss.str();
-        imwrite(path + ".jpg", img);
-        resizeandtogray(stdDir + "0", i);
+    stringstream pathss;
+    pathss << stdDir << stdId << ".jpg";
+    LOGD(pathss.str().c_str());
+    Mat original = imread(pathss.str(),1), roiImg, normalImg;
+    Rect roiRect;
+    vector<Rect> faces = detectFaces(original,haar_cascade);
+    pathss.str("");
+    pathss << stdDir << stdId << "_face.jpg";
+    LOGD("image write: %s",pathss.str().c_str());
+    if(faces.size()==1){
+        roiRect = faces[0];
+        roiImg = original(roiRect);
+        imwrite(pathss.str(),roiImg);
     }
-/*    Mat gray = original.clone();
-    cvtColor(original,gray,CV_BGR2GRAY);
-    vector< Rect_<int> > faces;
-    haar_cascade.detectMultiScale(gray, faces, 1.1, 3, 0, Size(20,60));
-    LOGD("No of faces = %d",faces.size());*/
+    else{
+        imwrite(pathss.str(),original);
+    }
 
     env->ReleaseStringUTFChars(parentDir_, parentDir);
-    return 1;
+    return faces.size();
 }
 
 JNIEXPORT jint JNICALL
 Java_andy_ca_FaceHelper_train(JNIEnv *env, jclass type, jstring parentDir_, jint countPhoto) {
     const char *parentDir = env->GetStringUTFChars(parentDir_, 0);
     string stdDir(parentDir);
+    int stdCountPhoto(countPhoto);
+    LOGD("start train");
 
     vector<Mat> images;
     vector<int> labels;
-    string path, label;
+    Mat original, roiImg, normalImg;
+    vector<Rect> faces;
+    Rect roiRect;
+    stringstream pathss;
 
+    CascadeClassifier haar_cascade;
+    haar_cascade.load(stdDir + "haarcascade_frontalface_alt.xml");
 
-
-
-
-
-//    Mat original = imread(path, 1);
-//    Mat gray = original.clone();
-//    cvtColor(original,gray,CV_BGR2GRAY);
-//    imwrite(stdDir+"11.jpg",gray);
-//    vector< Rect_<int> > faces;
-//    haar_cascade.detectMultiScale(gray, faces, 1.1, 3, 0, Size(20,60));
-//    LOGD("No of faces = %d",faces.size());
-//    if(faces.size()==1) {
-//        Mat face = gray(faces[0]);
-//        Mat face_resized;
-//        cv::resize(face, face_resized,Size(face.cols,face.rows), 1.0, 1.0, INTER_CUBIC);
-//        imwrite(stdDir+"resize.jpg",face_resized);
-//    }
-
-
-
-    LOGD("start train");
     int i = 0;
-    for (i = 1; i <= countPhoto; i++) {
-        stringstream pathss;
-        pathss << stdDir << 0 << i << "0.jpg";
-        path = pathss.str();
-        LOGD(path.c_str());
-        label = "0";
-        images.push_back(imread(path, 0));
-        labels.push_back(atoi(label.c_str()));
+    for (i = 1; i <= stdCountPhoto; i++) {
+        pathss.str("");
+        pathss << stdDir << i << "_face.jpg";
+        LOGD("normalization of %d",i);
+        normalImg = normalizeImage(pathss.str());
+        images.push_back(normalImg);
+        labels.push_back(0);
     }
 
-    try {
-        LOGD("training");
-        Ptr<FaceRecognizer> model = createLBPHFaceRecognizer();
-        model->train(images, labels);
-        LOGD("train finish");
-        model->save(stdDir + "f.xml");
-    } catch (cv::Exception e) {
-        LOGD("nativeCreateObject catched cv::Exception: %s", e.what());
-        jclass je = env->FindClass("org/opencv/core/CvException");
-        if (!je)
-            je = env->FindClass("java/lang/Exception");
-        env->ThrowNew(je, e.what());
-    }
-    catch (...) {
-        LOGD("nativeCreateObject catched unknown exception");
-        jclass je = env->FindClass("java/lang/Exception");
-        env->ThrowNew(je,
-                      "Unknown exception in JNI code {highgui::VideoCapture_n_1VideoCapture__()}");
-    }
+    LOGD("training");
+    Ptr<FaceRecognizer> model = createLBPHFaceRecognizer();
+    model->train(images, labels);
+    LOGD("train finish");
+    model->save(stdDir + "f.xml");
 
     env->ReleaseStringUTFChars(parentDir_, parentDir);
+    return 0;
 }
-
 
 JNIEXPORT jint JNICALL
 Java_andy_ca_FaceHelper_predict(JNIEnv *env, jclass type, jstring parentDir_) {
     const char *parentDir = env->GetStringUTFChars(parentDir_, 0);
     string stdDir(parentDir);
-    LOGD("strat predict");
+    LOGD("start predict");
 
-    CascadeClassifier haar_cascade;
-    haar_cascade.load(stdDir + "haarcascade_frontalface_alt.xml");
-    string path;
-    stringstream pathss, paths;
-    pathss << stdDir << 0 << 9;
-    paths << stdDir << 9 << ".jpg";
-    path = paths.str();
-    Mat original = imread(path, 1);
-    Mat img = DetectandExtract(original, haar_cascade, haar_cascade, 1, false);
-    path = pathss.str();
-    imwrite(path + ".jpg", img);
-    resizeandtogray(stdDir + "0", 9);
-    img = imread(stdDir + "090.jpg", 0);
+    string imgPath = stdDir + "9_face.jpg";
+    Mat normalImg = normalizeImage(imgPath);
+    LOGD("nomalization done");
     string xmlPath = stdDir + "f.xml";
     double predicted_confidence = 0.0;
-    int prediction;
+    int prediction = -9;
     Ptr<FaceRecognizer> model = createLBPHFaceRecognizer();
     model->load(xmlPath);
-    model->predict(img, prediction, predicted_confidence);
+    LOGD("load xml done");
+    model->predict(normalImg, prediction, predicted_confidence);
     LOGD("Prediction = %d Predicted Confidence = %Lf", prediction, predicted_confidence);
-    return prediction;
+    int confidence = predicted_confidence;
 
-    LOGD("predict finish");
     env->ReleaseStringUTFChars(parentDir_, parentDir);
+    return confidence;
 }
+
 }
