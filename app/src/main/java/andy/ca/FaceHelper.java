@@ -23,4 +23,5 @@ public class FaceHelper {
     private static native int train(String parentDir, int countPhoto);
     public static native int predict(String parentDir);
     private static native int detect(String parentDir, int photoId);
+
 }

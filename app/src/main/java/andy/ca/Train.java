@@ -100,7 +100,14 @@ public class Train extends AppCompatActivity {
 
     public void takePhotoListener(View v) {
         Log.d(TAG, "onClick "+v.getId());
-        takePhoto(v.getId()%4+1);
+        int photoId = 0;
+        switch (v.getId()){
+            case R.id.image1:photoId = 1;break;
+            case R.id.image2:photoId = 2;break;
+            case R.id.image3:photoId = 3;break;
+            case R.id.image4:photoId = 4;break;
+        }
+        takePhoto(photoId);
     }
 
     private void takePhoto(int photoId){
